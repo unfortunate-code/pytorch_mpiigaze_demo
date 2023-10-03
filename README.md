@@ -1,22 +1,9 @@
 # A demo program of gaze estimation models (MPIIGaze, MPIIFaceGaze, ETH-XGaze)
 
-[![PyPI version](https://badge.fury.io/py/ptgaze.svg)](https://pypi.org/project/ptgaze/)
-[![Downloads](https://pepy.tech/badge/ptgaze)](https://pepy.tech/project/ptgaze)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hysts/pytorch_mpiigaze_demo/blob/master/demo.ipynb)
-[![MIT License](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/hysts/pytorch_mpiigaze_demo.svg?style=flat-square&logo=github&label=Stars&logoColor=white)](https://github.com/hysts/pytorch_mpiigaze_demo)
+
 
 With this program, you can run gaze estimation on images and videos.
-By default, the video from a webcam will be used.
-
-![ETH-XGaze video01 result](https://raw.githubusercontent.com/hysts/pytorch_mpiigaze_demo/master/assets/results/eth-xgaze_video01.gif)
-![ETH-XGaze video02 result](https://raw.githubusercontent.com/hysts/pytorch_mpiigaze_demo/master/assets/results/eth-xgaze_video02.gif)
-![ETH-XGaze video03 result](https://raw.githubusercontent.com/hysts/pytorch_mpiigaze_demo/master/assets/results/eth-xgaze_video03.gif)
-
-![MPIIGaze video00 result](https://raw.githubusercontent.com/hysts/pytorch_mpiigaze_demo/master/assets/results/mpiigaze_video00.gif)
-![MPIIFaceGaze video00 result](https://raw.githubusercontent.com/hysts/pytorch_mpiigaze_demo/master/assets/results/mpiifacegaze_video00.gif)
-
-![MPIIGaze image00 result](https://raw.githubusercontent.com/hysts/pytorch_mpiigaze_demo/master/assets/results/mpiigaze_image00.jpg)
+By default, the video from a webcam will be used. Can select the camera to use.
 
 To train a model for MPIIGaze and MPIIFaceGaze,
 use [this repository](https://github.com/hysts/pytorch_mpiigaze).
@@ -24,8 +11,6 @@ You can also use [this repo](https://github.com/hysts/pl_gaze_estimation)
 to train a model with ETH-XGaze dataset.
 
 ## Quick start
-
-This program is tested only on Ubuntu.
 
 ### Installation
 
@@ -54,7 +39,7 @@ optional arguments:
   -h, --help            show this help message and exit
   --config CONFIG       Config file. When using a config file, all the other commandline arguments
                         are ignored. See
-                        https://github.com/hysts/pytorch_mpiigaze_demo/ptgaze/data/configs/eth-
+                        https://github.com/unfortunate-code/unfortunate-code/ptgaze/data/configs/eth-
                         xgaze.yaml
   --mode {mpiigaze,mpiifacegaze,eth-xgaze}
                         With 'mpiigaze', MPIIGaze model will be used. With 'mpiifacegaze',
@@ -66,8 +51,9 @@ optional arguments:
   --device {cpu,cuda}   Device used for model inference.
   --image IMAGE         Path to an input image file.
   --video VIDEO         Path to an input video file.
-  --camera CAMERA       Camera calibration file. See https://github.com/hysts/pytorch_mpiigaze_demo/
+  --camera CAMERA       Camera calibration file. See https://github.com/unfortunate-code/pytorch_mpiigaze_demo/
                         ptgaze/data/calib/sample_params.yaml
+  --camera-index        The index of the camera device to use for the video.
   --output-dir OUTPUT_DIR, -o OUTPUT_DIR
                         If specified, the overlaid video will be saved to this directory.
   --ext {avi,mp4}, -e {avi,mp4}
@@ -75,6 +61,8 @@ optional arguments:
   --no-screen           If specified, the video is not displayed on screen, and saved to the output
                         directory.
   --debug
+  --left                For stereo cameras, this parameter can be used to capture only the left feed.
+  --right               For stereo cameras, this parameter can be used to capture only the right feed.
 ```
 
 While processing an image or video, press the following keys on the window
@@ -84,6 +72,8 @@ to show or hide intermediate results:
 - `h`: head pose
 - `t`: projected points of 3D face model
 - `b`: face bounding box
+- `e`: Shows the distance between eyes (as a vector)
+- `f`: Shows hand landmarks
 
 
 ## References

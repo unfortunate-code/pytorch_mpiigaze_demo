@@ -73,6 +73,9 @@ def parse_args() -> argparse.Namespace:
         help='If specified, the video is not displayed on screen, and saved '
         'to the output directory.')
     parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--camera-index', type=int, default=0, help='Camera index')
+    parser.add_argument('--left', '-l', action='store_true')
+    parser.add_argument('--right', '-r', action='store_true')
     return parser.parse_args()
 
 
@@ -150,6 +153,5 @@ def main():
             download_ethxgaze_model()
 
     check_path_all(config)
-
-    demo = Demo(config)
+    demo = Demo(config, args.camera_index, args.left, args.right)
     demo.run()

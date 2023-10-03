@@ -9,6 +9,7 @@ from omegaconf import DictConfig
 
 from .common import Face, FacePartsName, Visualizer
 from .gaze_estimator import GazeEstimator
+from .hand_landmark_estimator import HandLandmarkEstimator
 from .utils import get_3d_face_model
 
 logging.basicConfig(level=logging.INFO)
@@ -18,23 +19,27 @@ logger = logging.getLogger(__name__)
 class Demo:
     QUIT_KEYS = {27, ord('q')}
 
-    def __init__(self, config: DictConfig):
+    def __init__(self, config: DictConfig, camera_index, only_left=False, only_right=False):
         self.config = config
+        self.camera_index = camera_index
+        self.only_left = only_left
+        self.only_right = only_right
         self.gaze_estimator = GazeEstimator(config)
+        self.hand_landmark_estimator = HandLandmarkEstimator()
         face_model_3d = get_3d_face_model(config)
         self.visualizer = Visualizer(self.gaze_estimator.camera,
                                      face_model_3d.NOSE_INDEX)
-
         self.cap = self._create_capture()
         self.output_dir = self._create_output_dir()
         self.writer = self._create_video_writer()
-
         self.stop = False
         self.show_bbox = self.config.demo.show_bbox
         self.show_head_pose = self.config.demo.show_head_pose
         self.show_landmarks = self.config.demo.show_landmarks
         self.show_normalized_image = self.config.demo.show_normalized_image
         self.show_template_model = self.config.demo.show_template_model
+        self.show_eye_distances = False
+        self.show_hand_landmarks = False
 
     def run(self) -> None:
         if self.config.demo.use_camera or self.config.demo.video_path:
@@ -79,12 +84,18 @@ class Demo:
             self.writer.release()
 
     def _process_image(self, image) -> None:
+        height, width, channels = image.shape
+        if self.only_left:
+            image=image[0:height,0:int(width/2)]
+        elif self.only_right:
+            image=image[0:height,int(width/2):width]
         undistorted = cv2.undistort(
             image, self.gaze_estimator.camera.camera_matrix,
             self.gaze_estimator.camera.dist_coefficients)
 
         self.visualizer.set_image(image.copy())
         faces = self.gaze_estimator.detect_faces(undistorted)
+        
         for face in faces:
             self.gaze_estimator.estimate_gaze(undistorted, face)
             self._draw_face_bbox(face)
@@ -92,7 +103,10 @@ class Demo:
             self._draw_landmarks(face)
             self._draw_face_template_model(face)
             self._draw_gaze_vector(face)
+            self._show_eye_distances(face)
             self._display_normalized_image(face)
+
+        self.draw_hand_landmarks(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
         if self.config.demo.use_camera:
             self.visualizer.image = self.visualizer.image[:, ::-1]
@@ -103,7 +117,7 @@ class Demo:
         if self.config.demo.image_path:
             return None
         if self.config.demo.use_camera:
-            cap = cv2.VideoCapture(0)
+            cap = cv2.VideoCapture(self.camera_index)
         elif self.config.demo.video_path:
             cap = cv2.VideoCapture(self.config.demo.video_path)
         else:
@@ -150,6 +164,19 @@ class Demo:
         if writer is None:
             raise RuntimeError
         return writer
+    
+    def draw_hand_landmarks(self, image):
+        if not self.show_hand_landmarks:
+            return
+        detected = self.hand_landmark_estimator.estimate_hand_landmarks(image)
+        for hand_landmarks in detected:
+            self.visualizer.draw_points(hand_landmarks, color=(255, 0, 255))
+
+    def _show_eye_distances(self, face: Face) -> None:
+        if not self.show_eye_distances:
+            return
+        eye_distances = (face.landmarks[145][1] - face.landmarks[159][1], face.landmarks[374][1] - face.landmarks[386][1])
+        logger.info('Eye distances: ' + str(eye_distances))
 
     def _wait_key(self) -> bool:
         key = cv2.waitKey(self.config.demo.wait_time) & 0xff
@@ -165,6 +192,10 @@ class Demo:
             self.show_normalized_image = not self.show_normalized_image
         elif key == ord('t'):
             self.show_template_model = not self.show_template_model
+        elif key == ord('e'):
+            self.show_eye_distances = not self.show_eye_distances
+        elif key == ord('f'):
+            self.show_hand_landmarks = not self.show_hand_landmarks
         else:
             return False
         return True
