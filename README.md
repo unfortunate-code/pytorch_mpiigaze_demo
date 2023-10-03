@@ -10,15 +10,6 @@ use [this repository](https://github.com/hysts/pytorch_mpiigaze).
 You can also use [this repo](https://github.com/hysts/pl_gaze_estimation)
 to train a model with ETH-XGaze dataset.
 
-## Quick start
-
-### Installation
-
-```bash
-pip install ptgaze
-```
-
-
 ### Run demo
 
 ```bash
